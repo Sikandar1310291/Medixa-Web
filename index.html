@@ -155,13 +155,26 @@
       
       try {
         // 1. Check if license exists in main licenses table
-        const licRes = await fetch(`${SUPA_URL}/rest/v1/licenses?license_key=eq.${lic}&select=client_name`, {
+        const licRes = await fetch(`${SUPA_URL}/rest/v1/licenses?license_key=eq.${lic}&select=client_name,dashboard_expiry`, {
           headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
         });
         const licData = await licRes.json();
         
         if(licData.length === 0) {
           showErr('Invalid License Key. Not found in database.');
+          document.querySelector('.login-card button').textContent = '🔓 Login';
+          return;
+        }
+
+        const expStr = licData[0].dashboard_expiry;
+        if (!expStr) {
+          showErr('Premium Dashboard is not activated for this license.');
+          document.querySelector('.login-card button').textContent = '🔓 Login';
+          return;
+        }
+        const expDate = new Date(expStr);
+        if (expDate < new Date()) {
+          showErr(`Dashboard Subscription Expired on ${expStr}. Please renew to continue.`);
           document.querySelector('.login-card button').textContent = '🔓 Login';
           return;
         }
