@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang='en'>
 <head>
   <meta charset='UTF-8'>
@@ -115,9 +115,9 @@
       <div class='section-title'>
         <span>📋 Cloud Sales</span>
         <div class='tabs'>
-          <button id='tab-today' class='tab active' onclick='setFilter(""today"")'>Today</button>
-          <button id='tab-week' class='tab' onclick='setFilter(""week"")'>7 Days</button>
-          <button id='tab-month' class='tab' onclick='setFilter(""month"")'>Month</button>
+          <button id='tab-today' class='tab active' onclick='setFilter("today")'>Today</button>
+          <button id='tab-week' class='tab' onclick='setFilter("week")'>7 Days</button>
+          <button id='tab-month' class='tab' onclick='setFilter("month")'>Month</button>
         </div>
       </div>
       <div id='salesList'><div style='text-align:center;color:#8b949e;padding:20px'>Loading...</div></div>
@@ -154,8 +154,8 @@
       document.querySelector('.login-card button').textContent = 'Loading...';
       
       try {
-        const res = await fetch(${SUPA_URL}/rest/v1/pharmacy_dashboard?license_key=eq.&select=owner_pin,pharmacy_name, {
-          headers: {'apikey': SUPA_KEY, 'Authorization': Bearer }
+        const res = await fetch(`${SUPA_URL}/rest/v1/pharmacy_dashboard?license_key=eq.${lic}&select=owner_pin,pharmacy_name`, {
+          headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
         });
         const data = await res.json();
         
@@ -199,8 +199,8 @@
       const dMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
       
       try {
-        const res = await fetch(${SUPA_URL}/rest/v1/cloud_sales?license_key=eq.&sale_date=gte. 00:00:00&order=sale_date.desc.nullslast, {
-          headers: {'apikey': SUPA_KEY, 'Authorization': Bearer }
+        const res = await fetch(`${SUPA_URL}/rest/v1/cloud_sales?license_key=eq.${currentLic}&sale_date=gte.${dMonth} 00:00:00&order=sale_date.desc.nullslast`, {
+          headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
         });
         allSales = await res.json();
         calcKpis();
@@ -263,7 +263,7 @@
       });
       
       if(list.length===0){
-        document.getElementById('salesList').innerHTML = <p style='color:#8b949e;text-align:center;padding:20px'>No sales .</p>;
+        document.getElementById('salesList').innerHTML = `<p style='color:#8b949e;text-align:center;padding:20px'>No sales ${currentFilter}.</p>`;
         return;
       }
       
@@ -271,7 +271,7 @@
       list.forEach(s => {
         const badge = s.status==='Paid'?'badge-paid':'badge-credit';
         const dt = s.sale_date.substring(0,16);
-        html += <div class='sale-item'><div class='sale-left'><div class='sale-id'># -- </div><div class='sale-meta'></div></div><div class='sale-right'><div class='sale-amount'>Rs. </div><span class='sale-badge '></span></div></div>;
+        html += `<div class='sale-item'><div class='sale-left'><div class='sale-id'>#${s.local_sale_id} -- ${s.customer_name}</div><div class='sale-meta'>${dt}</div></div><div class='sale-right'><div class='sale-amount'>Rs. ${Math.round(s.net_paid).toLocaleString()}</div><span class='sale-badge ${badge}'>${s.status}</span></div></div>`;
       });
       document.getElementById('salesList').innerHTML = html;
     }
