@@ -217,8 +217,13 @@
       return 'Rs. '+Math.round(n).toLocaleString();
     }
     
+    function getLocalDayStr(d) {
+      const pad = n => n<10 ? '0'+n : n;
+      return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+    }
+    
     function calcKpis(){
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDayStr(new Date());
       const weekDate = new Date();
       weekDate.setDate(weekDate.getDate()-6);
       
@@ -227,7 +232,9 @@
       allSales.forEach(s => {
         const amt = parseFloat(s.net_paid||0);
         const sdStr = s.sale_date.substring(0,10);
-        const sdDate = new Date(sdStr);
+        
+        // Parse the sale_date as a local date (assume it's stored in local time YYYY-MM-DD HH:MM:SS)
+        const sdDate = new Date(s.sale_date.replace(' ', 'T'));
         
         mC++; mR+=amt; // all in this month query
         if(sdDate >= weekDate){ wC++; wR+=amt; }
@@ -250,13 +257,13 @@
     }
     
     function renderSales(){
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDayStr(new Date());
       const weekDate = new Date();
       weekDate.setDate(weekDate.getDate()-6);
       
       let list = allSales.filter(s => {
         const sdStr = s.sale_date.substring(0,10);
-        const sdDate = new Date(sdStr);
+        const sdDate = new Date(s.sale_date.replace(' ', 'T'));
         if(currentFilter==='today') return sdStr === todayStr;
         if(currentFilter==='week') return sdDate >= weekDate;
         return true;
