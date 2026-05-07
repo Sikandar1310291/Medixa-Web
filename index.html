@@ -154,23 +154,44 @@
       document.querySelector('.login-card button').textContent = 'Loading...';
       
       try {
-        const res = await fetch(`${SUPA_URL}/rest/v1/pharmacy_dashboard?license_key=eq.${lic}&select=owner_pin,pharmacy_name`, {
+        // 1. Check if license exists in main licenses table
+        const licRes = await fetch(`${SUPA_URL}/rest/v1/licenses?license_key=eq.${lic}&select=client_name`, {
           headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
         });
-        const data = await res.json();
+        const licData = await licRes.json();
         
-        if(data.length === 0) {
-          showErr('License key not registered online.');
-        } else if(data[0].owner_pin !== pin && pin !== '1234') {
-          showErr('Incorrect PIN code.');
-        } else {
-          localStorage.setItem('medixa_lic', lic);
-          localStorage.setItem('medixa_name', data[0].pharmacy_name || 'Pharmacy Dashboard');
-          currentLic = lic;
-          document.getElementById('loginScreen').style.display = 'none';
-          document.getElementById('dashboardScreen').style.display = 'block';
-          fetchSales();
+        if(licData.length === 0) {
+          showErr('Invalid License Key. Not found in database.');
+          document.querySelector('.login-card button').textContent = '🔓 Login';
+          return;
         }
+
+        // 2. Check if they have set a custom PIN in pharmacy_dashboard
+        const dashRes = await fetch(`${SUPA_URL}/rest/v1/pharmacy_dashboard?license_key=eq.${lic}&select=owner_pin`, {
+          headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
+        });
+        const dashData = await dashRes.json();
+        
+        let expectedPin = '1234';
+        if (dashData.length > 0 && dashData[0].owner_pin) {
+          expectedPin = dashData[0].owner_pin;
+        }
+
+        // Validate PIN
+        if(pin !== expectedPin && pin !== '1234') {
+          showErr('Incorrect PIN code.');
+          document.querySelector('.login-card button').textContent = '🔓 Login';
+          return;
+        }
+        
+        // Success
+        localStorage.setItem('medixa_lic', lic);
+        localStorage.setItem('medixa_name', licData[0].client_name || 'Pharmacy Dashboard');
+        currentLic = lic;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboardScreen').style.display = 'block';
+        fetchSales();
+        
       } catch(e) {
         showErr('Network error. Check connection.');
       }
