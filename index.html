@@ -275,8 +275,23 @@
       document.getElementById('view-' + view).classList.add('active');
     }
 
-    const fmt = n => 'Rs. ' + Math.round(n).toLocaleString();
+    const fmt = n => 'Rs. ' + Math.round(n||0).toLocaleString();
     const getLocalDayStr = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+
+    function safeParse(val) {
+      if(!val) return {};
+      if(typeof val === 'string') {
+        try { return JSON.parse(val); } catch(e) { return {}; }
+      }
+      return val;
+    }
+    function safeParseArr(val) {
+      if(!val) return [];
+      if(typeof val === 'string') {
+        try { return JSON.parse(val); } catch(e) { return []; }
+      }
+      return Array.isArray(val) ? val : [];
+    }
 
     async function fetchData() {
       if(!currentLic) return;
@@ -324,6 +339,7 @@
       let totalCnt = 0;
       
       let filtered = allSales.filter(s => {
+        if(!s || !s.sale_date) return false;
         let match = false;
         if(filterType === 'all') match = true;
         else {
@@ -346,7 +362,8 @@
       document.getElementById('salesTimeframe').textContent = tfNames[filterType];
       
       let html = '';
-      filtered.slice(0, 50).forEach(s => { // Show max 50 in list to prevent lag
+      filtered.slice(0, 50).forEach(s => { 
+        if(!s || !s.sale_date) return;
         const amt = parseFloat(s.net_paid||0);
         const sdStr = s.sale_date.substring(0,10);
         const dt = new Date(s.sale_date.replace(' ','T'));
@@ -413,15 +430,15 @@
     function processMetrics(data) {
       if(!data) return;
       metricData = data;
-      const kpi = data.kpi_json || {};
+      const kpi = safeParse(data.kpi_json);
       
       document.getElementById('totalStockVal').textContent = fmt(kpi.totalStockValue || 0);
       document.getElementById('totalMedCnt').textContent = (kpi.totalMedicines || 0) + ' items in catalog';
       
       document.getElementById('expCnt').textContent = kpi.expiredCount || 0;
-      // We are reusing low_stock_json array for Available Stock items now based on backend changes
-      let availableItems = metricData.low_stock_json || [];
-      document.getElementById('availCnt').textContent = availableItems.length + ' shown';
+      
+      const availItems = safeParseArr(metricData.low_stock_json);
+      document.getElementById('availCnt').textContent = availItems.length + ' shown';
       
       setInvTab('avail');
     }
@@ -433,11 +450,11 @@
       if(tab === 'exp') {
         btnExp.style.background = 'rgba(239,68,68,0.1)'; btnExp.style.borderColor = 'var(--red)'; btnExp.style.color = '#fff';
         btnAvail.style.background = 'var(--card)'; btnAvail.style.borderColor = 'var(--border)'; btnAvail.style.color = 'var(--sub)';
-        renderInvList(metricData.expired_json || [], true);
+        renderInvList(safeParseArr(metricData.expired_json), true);
       } else {
         btnAvail.style.background = 'rgba(16,185,129,0.1)'; btnAvail.style.borderColor = 'var(--green)'; btnAvail.style.color = '#fff';
         btnExp.style.background = 'var(--card)'; btnExp.style.borderColor = 'var(--border)'; btnExp.style.color = 'var(--sub)';
-        renderInvList(metricData.low_stock_json || [], false); // This is Available Stock now
+        renderInvList(safeParseArr(metricData.low_stock_json), false); 
       }
     }
 
@@ -446,15 +463,18 @@
       items.forEach(i => {
         html += `
           <div class='list-item'>
-            <div>
-              <div class='title'>${i.name}</div>
-              <div class='meta'>${i.generic || 'Generic'} ${i.batch ? '&bull; Batch: '+i.batch : ''}</div>
-              <div class='badge ${isExp?'bg-red':'bg-green'}'>
-                ${isExp ? 'Expired: ' + i.expiry : 'Available Stock: ' + i.stock}
+            <div style="flex:1;">
+              <div class='title' style="font-size:16px;color:var(--text);">${i.name || 'Unknown Medicine'}</div>
+              <div class='meta' style="margin-bottom:8px;">${i.generic || 'Formula not set'} ${i.batch ? '&bull; Batch: '+i.batch : ''}</div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class='badge ${isExp?'bg-red':'bg-green'}'>
+                  ${isExp ? 'Expired: ' + (i.expiry||'N/A') : 'Stock: ' + (i.stock||0)}
+                </div>
+                ${!isExp && i.min ? `<div class='badge bg-orange' style="opacity:0.8;">Min: ${i.min}</div>` : ''}
               </div>
             </div>
-            <div class='amount ${isExp?'c-red':'c-green'}' style="font-size:24px;">
-              ${isExp ? '⚠️' : '📦'}
+            <div class='amount ${isExp?'c-red':'c-green'}' style="font-size:20px;font-weight:800;padding-left:12px;">
+              ${isExp ? '⚠️' : (i.stock||0)}
             </div>
           </div>
         `;
