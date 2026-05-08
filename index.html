@@ -311,13 +311,16 @@
         const metRes = await fetch(`${SUPA_URL}/rest/v1/cloud_metrics?license_key=eq.${currentLic}`, { headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`} });
         const metrics = await metRes.json();
         
-        filterSales('all');
-        filterPurchases('today');
-        processMetrics(Array.isArray(metrics) && metrics.length > 0 ? metrics[0] : null);
+        // Wrap each in try-catch so one failing doesn't break others
+        try { filterSales('all'); } catch(e){ console.error('Sales Error:', e); }
+        try { filterPurchases('today'); } catch(e){ console.error('Purchases Error:', e); }
+        try { processMetrics(Array.isArray(metrics) && metrics.length > 0 ? metrics[0] : null); } catch(e){ console.error('Metrics Error:', e); }
         
       } catch(e) {
-        console.error(e);
-        document.getElementById('salesList').innerHTML = '<div class="empty-state"><i>❌</i>Failed to load data. Please check your connection.</div>';
+        console.error('Fetch Error:', e);
+        if(!allSales.length) {
+          document.getElementById('salesList').innerHTML = '<div class="empty-state"><i>❌</i>Failed to connect. Please check internet.</div>';
+        }
       } finally {
         document.getElementById('dashboard-loader').style.display = 'none';
         document.getElementById('dashboard-content').style.display = 'block';
@@ -340,16 +343,15 @@
       let totalCnt = 0;
       
       let filtered = allSales.filter(s => {
-        if(!s || !s.sale_date) return false;
+        if(!s || !s.sale_date || typeof s.sale_date !== 'string') return false;
         let match = false;
+        const sdStr = s.sale_date.substring(0,10);
+        const sdDate = new Date(s.sale_date.replace(' ', 'T'));
         if(filterType === 'all') match = true;
-        else {
-          const sdStr = s.sale_date.substring(0,10);
-          const sdDate = new Date(s.sale_date.replace(' ', 'T'));
-          if(filterType === 'today') match = (sdStr === todayStr);
-          else if(filterType === 'week') match = (sdDate >= weekDate);
-          else if(filterType === 'month') match = (sdDate.getMonth() === currentMonth && sdDate.getFullYear() === currentYear);
-        }
+        else if(filterType === 'today') match = (sdStr === todayStr);
+        else if(filterType === 'week') match = (sdDate >= weekDate);
+        else if(filterType === 'month') match = (sdDate.getMonth() === currentMonth && sdDate.getFullYear() === currentYear);
+        
         if(match) {
            totalRev += parseFloat(s.net_paid||0);
            totalCnt++;
