@@ -279,30 +279,32 @@
     const getLocalDayStr = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 
     async function fetchData() {
+      if(!currentLic) return;
       document.getElementById('syncIcon').style.animation = 'pulse 1s infinite';
       document.getElementById('pharmName').textContent = localStorage.getItem('medixa_name') || 'Pharmacy';
       
       try {
         const salesRes = await fetch(`${SUPA_URL}/rest/v1/cloud_sales?license_key=eq.${currentLic}&order=sale_date.desc&limit=500`, { headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`} });
-        allSales = await salesRes.json();
+        const salesData = await salesRes.json();
+        allSales = Array.isArray(salesData) ? salesData : [];
         
         const purchRes = await fetch(`${SUPA_URL}/rest/v1/cloud_purchases?license_key=eq.${currentLic}&order=purchase_date.desc&limit=500`, { headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`} });
-        allPurchases = await purchRes.json();
+        const purchData = await purchRes.json();
+        allPurchases = Array.isArray(purchData) ? purchData : [];
 
         const metRes = await fetch(`${SUPA_URL}/rest/v1/cloud_metrics?license_key=eq.${currentLic}`, { headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`} });
         const metrics = await metRes.json();
         
         filterSales('all');
-        
         filterPurchases('today');
+        processMetrics(Array.isArray(metrics) && metrics.length > 0 ? metrics[0] : null);
         
-        processMetrics(metrics.length > 0 ? metrics[0] : null);
-        
-        document.getElementById('dashboard-loader').style.display = 'none';
-        document.getElementById('dashboard-content').style.display = 'block';
       } catch(e) {
         console.error(e);
+        document.getElementById('salesList').innerHTML = '<div class="empty-state"><i>❌</i>Failed to load data. Please check your connection.</div>';
       } finally {
+        document.getElementById('dashboard-loader').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'block';
         document.getElementById('syncIcon').style.animation = 'none';
       }
     }
