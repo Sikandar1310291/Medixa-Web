@@ -53,8 +53,12 @@
     .c-orange { color: var(--orange); }
     .c-red { color: var(--red); }
     
-    /* List Items */
-    .section-title { font-size: 14px; font-weight: 700; color: #fff; margin: 0 0 16px 4px; display: flex; justify-content: space-between; align-items: center; }
+    /* List Items & Filters */
+    .section-title { font-size: 14px; font-weight: 700; color: #fff; margin: 0 0 16px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .filter-group { display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; }
+    .filter-btn { padding: 6px 10px; font-size: 11px; font-weight: 600; background: transparent; border: none; color: var(--sub); border-radius: 6px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+    .filter-btn.active { background: rgba(255,255,255,0.1); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
     .list-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
     .list-item .title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
     .list-item .meta { font-size: 12px; color: var(--sub); }
@@ -135,7 +139,15 @@
           </div>
         </div>
         
-        <div class='section-title'>Recent Sales</div>
+        <div class='section-title'>
+          <div>Sales Report</div>
+          <div class="filter-group">
+            <button onclick="filterSales('today')" id="s-today" class="filter-btn active">Today</button>
+            <button onclick="filterSales('week')" id="s-week" class="filter-btn">7 Days</button>
+            <button onclick="filterSales('month')" id="s-month" class="filter-btn">Month</button>
+            <button onclick="filterSales('all')" id="s-all" class="filter-btn">All Time</button>
+          </div>
+        </div>
         <div id='salesList'></div>
       </div>
     </div>
@@ -144,11 +156,20 @@
     <div id='view-purchases' class='view-section'>
       <div class='grid-2'>
         <div class='card full' style="background: linear-gradient(135deg, var(--card), rgba(59,130,246,0.1)); border-color: rgba(59,130,246,0.2);">
-          <div class='kpi-label'>📥 Total Purchases (Month)</div>
-          <div class='kpi-val c-blue' id='monthPurchases'>Rs. 0</div>
+          <div class='kpi-label'>📥 Total Purchases (<span id="purchTimeframe">Today</span>)</div>
+          <div class='kpi-val c-blue' id='purchasesTotal'>Rs. 0</div>
         </div>
       </div>
-      <div class='section-title'>Recent Purchases</div>
+      
+      <div class='section-title'>
+        <div>Purchase History</div>
+        <div class="filter-group">
+          <button onclick="filterPurchases('today')" id="p-today" class="filter-btn active">Today</button>
+          <button onclick="filterPurchases('week')" id="p-week" class="filter-btn">7 Days</button>
+          <button onclick="filterPurchases('month')" id="p-month" class="filter-btn">Month</button>
+          <button onclick="filterPurchases('all')" id="p-all" class="filter-btn">All Time</button>
+        </div>
+      </div>
       <div id='purchasesList'></div>
     </div>
 
@@ -160,16 +181,16 @@
           <div class='kpi-val c-red' id='expCnt'>0</div>
           <div class='kpi-sub'>medicines</div>
         </div>
-        <div class='card' style="background: linear-gradient(135deg, var(--card), rgba(245,158,11,0.1)); border-color: rgba(245,158,11,0.2);">
-          <div class='kpi-label'>📉 Low Stock</div>
-          <div class='kpi-val c-orange' id='lowCnt'>0</div>
-          <div class='kpi-sub'>medicines</div>
+        <div class='card' style="background: linear-gradient(135deg, var(--card), rgba(16,185,129,0.1)); border-color: rgba(16,185,129,0.2);">
+          <div class='kpi-label'>📦 Available Stock</div>
+          <div class='kpi-val c-green' id='availCnt'>0</div>
+          <div class='kpi-sub'>unique medicines</div>
         </div>
       </div>
       
       <div style="display:flex;gap:10px;margin-bottom:16px;">
-        <button id="tab-exp" onclick="setInvTab('exp')" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--red);background:rgba(239,68,68,0.1);color:#fff;font-weight:600;">Expired</button>
-        <button id="tab-low" onclick="setInvTab('low')" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--sub);font-weight:600;">Low Stock</button>
+        <button id="tab-exp" onclick="setInvTab('exp')" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--red);background:rgba(239,68,68,0.1);color:#fff;font-weight:600;">Expired Medicines</button>
+        <button id="tab-avail" onclick="setInvTab('avail')" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--sub);font-weight:600;">Available Stock</button>
       </div>
       
       <div id='invList'></div>
@@ -178,7 +199,7 @@
     <!-- Bottom Nav -->
     <div class='bottom-nav'>
       <a class='nav-item active' onclick='switchNav("dashboard", this)'>
-        <i>📊</i><span>Dashboard</span>
+        <i>📊</i><span>Sales</span>
       </a>
       <a class='nav-item' onclick='switchNav("purchases", this)'>
         <i>📦</i><span>Purchases</span>
@@ -197,7 +218,9 @@
     const SUPA_KEY = 'sb_publishable_-Uwrrbhxubrc3dDYDw6gMw_1xRb2oYd';
     
     let currentLic = '';
-    let metricData = { expired_json: [], low_stock_json: [] };
+    let metricData = { expired_json: [], low_stock_json: [] }; // low_stock_json actually holds available stock now
+    let allSales = [];
+    let allPurchases = [];
     
     if(localStorage.getItem('medixa_lic')){
       currentLic = localStorage.getItem('medixa_lic');
@@ -219,8 +242,7 @@
           headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
         });
         const licData = await licRes.json();
-        
-        if(!licData || licData.length === 0) { throw 'Invalid License Key.'; }
+        if(!licData || licData.length === 0) throw 'Invalid License Key.';
         
         const dashRes = await fetch(`${SUPA_URL}/rest/v1/pharmacy_dashboard?license_key=eq.${lic}&select=owner_pin`, {
           headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
@@ -228,7 +250,7 @@
         const dashData = await dashRes.json();
         let expectedPin = (dashData.length > 0 && dashData[0].owner_pin) ? dashData[0].owner_pin : '1234';
 
-        if(pin !== expectedPin && pin !== '1234') { throw 'Incorrect PIN code.'; }
+        if(pin !== expectedPin && pin !== '1234') throw 'Incorrect PIN code.';
         
         localStorage.setItem('medixa_lic', lic);
         localStorage.setItem('medixa_name', licData[0].client_name || 'Pharmacy');
@@ -266,26 +288,20 @@
       document.getElementById('pharmName').textContent = localStorage.getItem('medixa_name') || 'Pharmacy';
       
       try {
-        // Fetch Sales
-        const salesRes = await fetch(`${SUPA_URL}/rest/v1/cloud_sales?license_key=eq.${currentLic}&order=sale_date.desc&limit=50`, {
-          headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
-        });
-        const sales = await salesRes.json();
+        const salesRes = await fetch(`${SUPA_URL}/rest/v1/cloud_sales?license_key=eq.${currentLic}&order=sale_date.desc&limit=500`, { headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`} });
+        allSales = await salesRes.json();
         
-        // Fetch Purchases
-        const purchRes = await fetch(`${SUPA_URL}/rest/v1/cloud_purchases?license_key=eq.${currentLic}&order=purchase_date.desc&limit=50`, {
-          headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
-        });
-        const purchases = await purchRes.json();
+        const purchRes = await fetch(`${SUPA_URL}/rest/v1/cloud_purchases?license_key=eq.${currentLic}&order=purchase_date.desc&limit=500`, { headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`} });
+        allPurchases = await purchRes.json();
 
-        // Fetch Metrics
-        const metRes = await fetch(`${SUPA_URL}/rest/v1/cloud_metrics?license_key=eq.${currentLic}`, {
-          headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
-        });
+        const metRes = await fetch(`${SUPA_URL}/rest/v1/cloud_metrics?license_key=eq.${currentLic}`, { headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`} });
         const metrics = await metRes.json();
         
-        processSales(sales);
-        processPurchases(purchases);
+        processSalesKPIs();
+        filterSales('today');
+        
+        filterPurchases('today');
+        
         processMetrics(metrics.length > 0 ? metrics[0] : null);
         
         document.getElementById('dashboard-loader').style.display = 'none';
@@ -297,24 +313,48 @@
       }
     }
 
-    function processSales(sales) {
+    function processSalesKPIs() {
       const todayStr = getLocalDayStr(new Date());
       const weekDate = new Date(); weekDate.setDate(weekDate.getDate()-6);
-      
       let tR=0, tC=0, wR=0, wC=0;
-      let html = '';
-      
-      sales.forEach(s => {
+      allSales.forEach(s => {
         const amt = parseFloat(s.net_paid||0);
         const sdStr = s.sale_date.substring(0,10);
         const sdDate = new Date(s.sale_date.replace(' ', 'T'));
-        
         if(sdDate >= weekDate){ wC++; wR+=amt; }
         if(sdStr === todayStr){ tC++; tR+=amt; }
-        
+      });
+      document.getElementById('todayRev').textContent = fmt(tR);
+      document.getElementById('todayCnt').textContent = tC + ' invoices';
+      document.getElementById('weekRev').textContent = fmt(wR);
+      document.getElementById('weekCnt').textContent = wC + ' invoices';
+    }
+
+    function filterSales(filterType) {
+      document.querySelectorAll('#view-dashboard .filter-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('s-' + filterType).classList.add('active');
+      
+      const todayStr = getLocalDayStr(new Date());
+      const weekDate = new Date(); weekDate.setDate(weekDate.getDate()-6);
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      
+      let filtered = allSales.filter(s => {
+        if(filterType === 'all') return true;
+        const sdStr = s.sale_date.substring(0,10);
+        const sdDate = new Date(s.sale_date.replace(' ', 'T'));
+        if(filterType === 'today') return sdStr === todayStr;
+        if(filterType === 'week') return sdDate >= weekDate;
+        if(filterType === 'month') return sdDate.getMonth() === currentMonth && sdDate.getFullYear() === currentYear;
+        return true;
+      });
+      
+      let html = '';
+      filtered.slice(0, 50).forEach(s => { // Show max 50 in list to prevent lag
+        const amt = parseFloat(s.net_paid||0);
+        const sdStr = s.sale_date.substring(0,10);
         const dt = new Date(s.sale_date.replace(' ','T'));
         const timeStr = dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-        
         html += `
           <div class='list-item'>
             <div>
@@ -326,27 +366,40 @@
           </div>
         `;
       });
-      
-      document.getElementById('todayRev').textContent = fmt(tR);
-      document.getElementById('todayCnt').textContent = tC + ' invoices';
-      document.getElementById('weekRev').textContent = fmt(wR);
-      document.getElementById('weekCnt').textContent = wC + ' invoices';
-      document.getElementById('salesList').innerHTML = html || '<div class="empty-state"><i>🛒</i>No recent sales</div>';
+      document.getElementById('salesList').innerHTML = html || '<div class="empty-state"><i>🛒</i>No sales found in this period</div>';
     }
 
-    function processPurchases(purchases) {
+    function filterPurchases(filterType) {
+      document.querySelectorAll('#view-purchases .filter-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('p-' + filterType).classList.add('active');
+      
+      const todayStr = getLocalDayStr(new Date());
+      const weekDate = new Date(); weekDate.setDate(weekDate.getDate()-6);
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
-      let mR = 0;
-      let html = '';
       
-      purchases.forEach(p => {
-        const amt = parseFloat(p.total_amount||0);
+      let totalAmt = 0;
+      let filtered = allPurchases.filter(p => {
+        const pdStr = p.purchase_date.substring(0,10);
         const pdDate = new Date(p.purchase_date.replace(' ', 'T'));
-        if(pdDate.getMonth() === currentMonth && pdDate.getFullYear() === currentYear) {
-          mR += amt;
-        }
         
+        let match = false;
+        if(filterType === 'all') match = true;
+        else if(filterType === 'today') match = (pdStr === todayStr);
+        else if(filterType === 'week') match = (pdDate >= weekDate);
+        else if(filterType === 'month') match = (pdDate.getMonth() === currentMonth && pdDate.getFullYear() === currentYear);
+        
+        if(match) totalAmt += parseFloat(p.total_amount||0);
+        return match;
+      });
+      
+      document.getElementById('purchasesTotal').textContent = fmt(totalAmt);
+      const tfNames = { 'today':'Today', 'week':'Last 7 Days', 'month':'This Month', 'all':'All Time' };
+      document.getElementById('purchTimeframe').textContent = tfNames[filterType];
+      
+      let html = '';
+      filtered.slice(0, 50).forEach(p => {
+        const amt = parseFloat(p.total_amount||0);
         html += `
           <div class='list-item'>
             <div>
@@ -358,9 +411,7 @@
           </div>
         `;
       });
-      
-      document.getElementById('monthPurchases').textContent = fmt(mR);
-      document.getElementById('purchasesList').innerHTML = html || '<div class="empty-state"><i>📦</i>No recent purchases</div>';
+      document.getElementById('purchasesList').innerHTML = html || '<div class="empty-state"><i>📦</i>No purchases found in this period</div>';
     }
 
     function processMetrics(data) {
@@ -372,23 +423,25 @@
       document.getElementById('totalMedCnt').textContent = (kpi.totalMedicines || 0) + ' items in catalog';
       
       document.getElementById('expCnt').textContent = kpi.expiredCount || 0;
-      document.getElementById('lowCnt').textContent = kpi.lowStockCount || 0;
+      // We are reusing low_stock_json array for Available Stock items now based on backend changes
+      let availableItems = metricData.low_stock_json || [];
+      document.getElementById('availCnt').textContent = availableItems.length + ' shown';
       
-      setInvTab('exp');
+      setInvTab('avail');
     }
 
     function setInvTab(tab) {
       const btnExp = document.getElementById('tab-exp');
-      const btnLow = document.getElementById('tab-low');
+      const btnAvail = document.getElementById('tab-avail');
       
       if(tab === 'exp') {
         btnExp.style.background = 'rgba(239,68,68,0.1)'; btnExp.style.borderColor = 'var(--red)'; btnExp.style.color = '#fff';
-        btnLow.style.background = 'var(--card)'; btnLow.style.borderColor = 'var(--border)'; btnLow.style.color = 'var(--sub)';
+        btnAvail.style.background = 'var(--card)'; btnAvail.style.borderColor = 'var(--border)'; btnAvail.style.color = 'var(--sub)';
         renderInvList(metricData.expired_json || [], true);
       } else {
-        btnLow.style.background = 'rgba(245,158,11,0.1)'; btnLow.style.borderColor = 'var(--orange)'; btnLow.style.color = '#fff';
+        btnAvail.style.background = 'rgba(16,185,129,0.1)'; btnAvail.style.borderColor = 'var(--green)'; btnAvail.style.color = '#fff';
         btnExp.style.background = 'var(--card)'; btnExp.style.borderColor = 'var(--border)'; btnExp.style.color = 'var(--sub)';
-        renderInvList(metricData.low_stock_json || [], false);
+        renderInvList(metricData.low_stock_json || [], false); // This is Available Stock now
       }
     }
 
@@ -399,18 +452,18 @@
           <div class='list-item'>
             <div>
               <div class='title'>${i.name}</div>
-              <div class='meta'>${i.generic || 'Generic'} &bull; Batch: ${i.batch||'N/A'}</div>
-              <div class='badge ${isExp?'bg-red':'bg-orange'}'>
-                ${isExp ? 'Expired: ' + i.expiry : 'Stock: ' + i.stock + ' (Min: ' + i.min + ')'}
+              <div class='meta'>${i.generic || 'Generic'} ${i.batch ? '&bull; Batch: '+i.batch : ''}</div>
+              <div class='badge ${isExp?'bg-red':'bg-green'}'>
+                ${isExp ? 'Expired: ' + i.expiry : 'Available Stock: ' + i.stock}
               </div>
             </div>
-            <div class='amount ${isExp?'c-red':'c-orange'}' style="font-size:24px;">
-              ${isExp ? '⚠️' : '📉'}
+            <div class='amount ${isExp?'c-red':'c-green'}' style="font-size:24px;">
+              ${isExp ? '⚠️' : '📦'}
             </div>
           </div>
         `;
       });
-      document.getElementById('invList').innerHTML = html || `<div class="empty-state"><i>✔️</i>All good here!</div>`;
+      document.getElementById('invList').innerHTML = html || `<div class="empty-state"><i>✔️</i>${isExp?'No expired medicines!':'No stock available'}</div>`;
     }
   </script>
 </body>
