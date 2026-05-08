@@ -394,6 +394,7 @@
       
       let totalAmt = 0;
       let filtered = allPurchases.filter(p => {
+        if(!p || !p.purchase_date) return false;
         const pdStr = p.purchase_date.substring(0,10);
         const pdDate = new Date(p.purchase_date.replace(' ', 'T'));
         
@@ -413,13 +414,14 @@
       
       let html = '';
       filtered.slice(0, 50).forEach(p => {
+        if(!p || !p.purchase_date) return;
         const amt = parseFloat(p.total_amount||0);
         html += `
           <div class='list-item'>
             <div>
-              <div class='title'>#${p.local_purchase_id} - ${p.supplier_name}</div>
+              <div class='title'>#${p.local_purchase_id} - ${p.supplier_name || 'Unknown'}</div>
               <div class='meta'>Inv: ${p.invoice_no||'N/A'} &bull; ${p.purchase_date.substring(0,10)}</div>
-              <div class='badge ${p.status==='Paid'?'bg-green':'bg-orange'}'>${p.status}</div>
+              <div class='badge ${p.status==='Paid'?'bg-green':'bg-orange'}'>${p.status || 'N/A'}</div>
             </div>
             <div class='amount c-blue'>${fmt(amt)}</div>
           </div>
