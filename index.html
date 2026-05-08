@@ -122,15 +122,10 @@
       
       <div id="dashboard-content" style="display:none;">
         <div class='grid-2'>
-          <div class='card'>
-            <div class='kpi-label'>📅 Today's Sales</div>
-            <div class='kpi-val c-green' id='todayRev'>Rs. 0</div>
-            <div class='kpi-sub' id='todayCnt'>0 invoices</div>
-          </div>
-          <div class='card'>
-            <div class='kpi-label'>📆 7 Days Sales</div>
-            <div class='kpi-val c-blue' id='weekRev'>Rs. 0</div>
-            <div class='kpi-sub' id='weekCnt'>0 invoices</div>
+          <div class='card full' style="background: linear-gradient(135deg, var(--card), rgba(16,185,129,0.1)); border-color: rgba(16,185,129,0.2);">
+            <div class='kpi-label'>📅 Total Sales (<span id="salesTimeframe">Today</span>)</div>
+            <div class='kpi-val c-green' id='salesTotalRev'>Rs. 0</div>
+            <div class='kpi-sub' id='salesTotalCnt'>0 invoices</div>
           </div>
           <div class='card full'>
             <div class='kpi-label'>📦 Total Inventory Value</div>
@@ -297,8 +292,7 @@
         const metRes = await fetch(`${SUPA_URL}/rest/v1/cloud_metrics?license_key=eq.${currentLic}`, { headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`} });
         const metrics = await metRes.json();
         
-        processSalesKPIs();
-        filterSales('today');
+        filterSales('all');
         
         filterPurchases('today');
         
@@ -313,22 +307,7 @@
       }
     }
 
-    function processSalesKPIs() {
-      const todayStr = getLocalDayStr(new Date());
-      const weekDate = new Date(); weekDate.setDate(weekDate.getDate()-6);
-      let tR=0, tC=0, wR=0, wC=0;
-      allSales.forEach(s => {
-        const amt = parseFloat(s.net_paid||0);
-        const sdStr = s.sale_date.substring(0,10);
-        const sdDate = new Date(s.sale_date.replace(' ', 'T'));
-        if(sdDate >= weekDate){ wC++; wR+=amt; }
-        if(sdStr === todayStr){ tC++; tR+=amt; }
-      });
-      document.getElementById('todayRev').textContent = fmt(tR);
-      document.getElementById('todayCnt').textContent = tC + ' invoices';
-      document.getElementById('weekRev').textContent = fmt(wR);
-      document.getElementById('weekCnt').textContent = wC + ' invoices';
-    }
+
 
     function filterSales(filterType) {
       document.querySelectorAll('#view-dashboard .filter-btn').forEach(b => b.classList.remove('active'));
@@ -339,15 +318,30 @@
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
       
+      let totalRev = 0;
+      let totalCnt = 0;
+      
       let filtered = allSales.filter(s => {
-        if(filterType === 'all') return true;
-        const sdStr = s.sale_date.substring(0,10);
-        const sdDate = new Date(s.sale_date.replace(' ', 'T'));
-        if(filterType === 'today') return sdStr === todayStr;
-        if(filterType === 'week') return sdDate >= weekDate;
-        if(filterType === 'month') return sdDate.getMonth() === currentMonth && sdDate.getFullYear() === currentYear;
-        return true;
+        let match = false;
+        if(filterType === 'all') match = true;
+        else {
+          const sdStr = s.sale_date.substring(0,10);
+          const sdDate = new Date(s.sale_date.replace(' ', 'T'));
+          if(filterType === 'today') match = (sdStr === todayStr);
+          else if(filterType === 'week') match = (sdDate >= weekDate);
+          else if(filterType === 'month') match = (sdDate.getMonth() === currentMonth && sdDate.getFullYear() === currentYear);
+        }
+        if(match) {
+           totalRev += parseFloat(s.net_paid||0);
+           totalCnt++;
+        }
+        return match;
       });
+      
+      document.getElementById('salesTotalRev').textContent = fmt(totalRev);
+      document.getElementById('salesTotalCnt').textContent = totalCnt + ' invoices';
+      const tfNames = { 'today':'Today', 'week':'Last 7 Days', 'month':'This Month', 'all':'All Time' };
+      document.getElementById('salesTimeframe').textContent = tfNames[filterType];
       
       let html = '';
       filtered.slice(0, 50).forEach(s => { // Show max 50 in list to prevent lag
