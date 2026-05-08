@@ -2,69 +2,83 @@
 <html lang='en'>
 <head>
   <meta charset='UTF-8'>
-  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'>
   <title>Medixa - Live Owner Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;--sub:#8b949e;
-          --green:#1abc9c;--blue:#58a6ff;--orange:#f0883e;--red:#f85149}
-    body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    :root { 
+      --bg: #0a0e14; --card: #151a21; --border: #262d35; --text: #e1e7ef; --sub: #8b949e;
+      --green: #10b981; --blue: #3b82f6; --orange: #f59e0b; --red: #ef4444; --accent: #6366f1;
+    }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 70px; }
     
     /* Login Screen */
-    #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;
-                 background:linear-gradient(135deg,#0f2027,#203a43,#2c5364)}
-    .login-card{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.15);
-                border-radius:20px;padding:40px 36px;width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-    .icon{font-size:48px;margin-bottom:12px}
-    h1{color:#fff;font-size:22px;margin-bottom:4px}
-    .sub{color:rgba(255,255,255,.5);font-size:13px;margin-bottom:28px}
-    input{width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.2);
-          background:rgba(255,255,255,.1);color:#fff;font-size:16px;outline:none;margin-bottom:16px}
-    input::placeholder{color:rgba(255,255,255,.4)}
-    input[type=password]{letter-spacing:6px;text-align:center;font-size:20px}
-    input[type=password]::placeholder{letter-spacing:normal;font-size:14px;text-align:left}
-    button{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#1abc9c,#16a085);
-           color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:.2s}
-    button:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(26,188,156,.4)}
+    #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: radial-gradient(circle at top right, #1a1e36, #0a0e14); padding: 20px; }
+    .login-card { background: rgba(21,26,33,0.8); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 40px 30px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+    .login-icon { font-size: 56px; margin-bottom: 16px; display: inline-block; animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .login-card h1 { font-size: 24px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .login-card .sub { color: var(--sub); font-size: 14px; margin-bottom: 30px; }
+    input { width: 100%; padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: #fff; font-size: 16px; outline: none; margin-bottom: 16px; transition: 0.2s; }
+    input:focus { border-color: var(--accent); background: rgba(99,102,241,0.05); }
+    input[type=password] { letter-spacing: 4px; text-align: center; font-size: 20px; font-weight: 700; }
+    input[type=password]::placeholder { letter-spacing: normal; font-size: 15px; font-weight: 400; text-align: left; }
+    button.btn-primary { width: 100%; padding: 16px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--accent), #818cf8); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 10px 20px -10px rgba(99,102,241,0.6); }
+    button.btn-primary:active { transform: scale(0.98); }
     
-    /* Dashboard Screen */
-    #dashboardScreen{display:none;padding-bottom:40px}
-    .header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 20px;
-            display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
-    .header-left h1{font-size:16px;font-weight:700;color:var(--text)}
-    .header-left span{font-size:11px;color:var(--sub)}
-    .live-badge{background:rgba(26,188,156,.15);border:1px solid rgba(26,188,156,.4);color:var(--green);
-                font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:5px}
-    .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    /* Header */
+    .header { background: rgba(21,26,33,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .header-left h1 { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .header-left span { font-size: 12px; color: var(--sub); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; display: inline-block; }
+    @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,0.4)} 50%{opacity:0.6;box-shadow:0 0 0 4px rgba(16,185,129,0)} }
     
-    .content{padding:20px 16px;max-width:600px;margin:0 auto}
-    .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-    .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
-    .kpi-card.full{grid-column:span 2}
-    .kpi-label{font-size:11px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-    .kpi-amount{font-size:22px;font-weight:700;color:var(--text);line-height:1}
-    .kpi-count{font-size:12px;color:var(--sub);margin-top:4px}
-    .kpi-today .kpi-amount{color:var(--green)}
-    .kpi-week  .kpi-amount{color:var(--blue)}
-    .kpi-month .kpi-amount{font-size:26px;color:var(--orange)}
+    /* Main Layout */
+    #app { display: none; }
+    .view-section { display: none; padding: 20px; max-width: 600px; margin: 0 auto; animation: fadeIn 0.3s ease; }
+    .view-section.active { display: block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
     
-    .section-title{font-size:13px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin:24px 0 10px;display:flex;justify-content:space-between;align-items:center}
-    .tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:8px;border:1px solid var(--border)}
-    .tab{padding:4px 10px;font-size:11px;font-weight:600;background:transparent;border:none;color:var(--sub);border-radius:6px;cursor:pointer;transition:.2s}
-    .tab.active{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+    /* Dashboard Grid */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .card.full { grid-column: span 2; background: linear-gradient(135deg, var(--card), #1e252e); }
+    .kpi-label { font-size: 12px; color: var(--sub); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .kpi-val { font-size: 24px; font-weight: 800; color: #fff; line-height: 1.1; }
+    .kpi-sub { font-size: 13px; color: var(--sub); margin-top: 6px; font-weight: 500; }
     
-    .sale-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-    .sale-left .sale-id{font-size:13px;font-weight:600;color:var(--text)}
-    .sale-left .sale-meta{font-size:11px;color:var(--sub);margin-top:2px}
-    .sale-right{text-align:right}
-    .sale-amount{font-size:15px;font-weight:700;color:var(--green)}
-    .sale-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;margin-top:3px;display:inline-block}
-    .badge-paid{background:rgba(26,188,156,.15);color:var(--green)}
-    .badge-credit{background:rgba(240,136,62,.15);color:var(--orange)}
+    .c-green { color: var(--green); }
+    .c-blue { color: var(--blue); }
+    .c-orange { color: var(--orange); }
+    .c-red { color: var(--red); }
     
-    .refresh-bar{text-align:center;font-size:11px;color:var(--sub);margin-top:20px;padding:12px;background:var(--card);border-radius:10px;border:1px solid var(--border);cursor:pointer}
-    .logout{display:block;text-align:center;margin-top:16px;color:var(--sub);font-size:12px;text-decoration:none;cursor:pointer}
+    /* List Items */
+    .section-title { font-size: 14px; font-weight: 700; color: #fff; margin: 0 0 16px 4px; display: flex; justify-content: space-between; align-items: center; }
+    .list-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .list-item .title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .list-item .meta { font-size: 12px; color: var(--sub); }
+    .list-item .amount { font-size: 16px; font-weight: 700; text-align: right; }
+    .badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; display: inline-block; margin-top: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .bg-green { background: rgba(16,185,129,0.15); color: var(--green); }
+    .bg-red { background: rgba(239,68,68,0.15); color: var(--red); }
+    .bg-orange { background: rgba(245,158,11,0.15); color: var(--orange); }
+    
+    /* Bottom Navigation */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(21,26,33,0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 10px; padding-bottom: max(12px, env(safe-area-inset-bottom)); z-index: 100; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--sub); text-decoration: none; font-size: 11px; font-weight: 600; cursor: pointer; flex: 1; transition: 0.2s; }
+    .nav-item i { font-size: 20px; font-style: normal; }
+    .nav-item.active { color: var(--accent); }
+    .nav-item.active i { transform: scale(1.1); }
+    
+    /* Skeleton Loader */
+    .skeleton { background: linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 8px; }
+    @keyframes loading { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .s-box { height: 100px; width: 100%; border-radius: 16px; margin-bottom: 12px; }
+    .s-line { height: 60px; width: 100%; border-radius: 14px; margin-bottom: 10px; }
+    
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--sub); }
+    .empty-state i { font-size: 40px; margin-bottom: 10px; opacity: 0.5; font-style: normal; display: block; }
   </style>
 </head>
 <body>
@@ -72,60 +86,109 @@
   <!-- Login Screen -->
   <div id='loginScreen'>
     <div class='login-card'>
-      <div class='icon'>🏥</div>
-      <h1>Medixa Cloud</h1>
-      <p class='sub'>24/7 Owner Dashboard</p>
-      <div id='errBox' style='display:none;background:rgba(231,76,60,.2);border:1px solid rgba(231,76,60,.5);color:#ff6b6b;padding:10px;border-radius:10px;font-size:13px;margin-bottom:16px'></div>
+      <div class='login-icon'>🏥</div>
+      <h1>Medixa Pulse</h1>
+      <p class='sub'>Real-time Pharmacy Intelligence</p>
+      <div id='errBox' style='display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--red);padding:12px;border-radius:12px;font-size:13px;margin-bottom:20px;font-weight:500;'></div>
       <input type='text' id='licKey' placeholder='License Key' autocomplete='off'>
       <input type='password' id='pinCode' placeholder='PIN Code (Default: 1234)' maxlength='8'>
-      <button onclick='login()'>🔓 Login</button>
-      <p style='color:rgba(255,255,255,.3);font-size:11px;margin-top:24px'>Works even if shop is closed</p>
+      <button class="btn-primary" onclick='login()' id='loginBtn'>Access Dashboard</button>
     </div>
   </div>
 
-  <!-- Dashboard Screen -->
-  <div id='dashboardScreen'>
+  <!-- Main App -->
+  <div id='app'>
     <div class='header'>
       <div class='header-left'>
-        <h1 id='pharmName'>🏥 Loading...</h1>
-        <span>Live Cloud Sync</span>
+        <h1 id='pharmName'>Pharmacy</h1>
+        <span><div class='live-dot'></div> Real-time Sync Active</span>
       </div>
-      <div class='live-badge'><span class='live-dot'></span>ONLINE</div>
+      <div onclick="fetchData()" style="background:var(--card);border:1px solid var(--border);padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <span id="syncIcon">🔄</span> Sync
+      </div>
     </div>
     
-    <div class='content'>
-      <div class='kpi-grid'>
-        <div class='kpi-card kpi-today'>
-          <div class='kpi-label'>📅 Today</div>
-          <div class='kpi-amount' id='todayRev'>—</div>
-          <div class='kpi-count' id='todayCnt'>—</div>
+    <!-- DASHBOARD VIEW -->
+    <div id='view-dashboard' class='view-section active'>
+      <div id="dashboard-loader">
+        <div class="grid-2"><div class="skeleton s-box"></div><div class="skeleton s-box"></div></div>
+        <div class="skeleton s-box full"></div>
+        <div class="skeleton s-line"></div><div class="skeleton s-line"></div>
+      </div>
+      
+      <div id="dashboard-content" style="display:none;">
+        <div class='grid-2'>
+          <div class='card'>
+            <div class='kpi-label'>📅 Today's Sales</div>
+            <div class='kpi-val c-green' id='todayRev'>Rs. 0</div>
+            <div class='kpi-sub' id='todayCnt'>0 invoices</div>
+          </div>
+          <div class='card'>
+            <div class='kpi-label'>📆 7 Days Sales</div>
+            <div class='kpi-val c-blue' id='weekRev'>Rs. 0</div>
+            <div class='kpi-sub' id='weekCnt'>0 invoices</div>
+          </div>
+          <div class='card full'>
+            <div class='kpi-label'>📦 Total Inventory Value</div>
+            <div class='kpi-val c-orange' id='totalStockVal'>Rs. 0</div>
+            <div class='kpi-sub' id='totalMedCnt'>0 items in catalog</div>
+          </div>
         </div>
-        <div class='kpi-card kpi-week'>
-          <div class='kpi-label'>📆 7 Days</div>
-          <div class='kpi-amount' id='weekRev'>—</div>
-          <div class='kpi-count' id='weekCnt'>—</div>
+        
+        <div class='section-title'>Recent Sales</div>
+        <div id='salesList'></div>
+      </div>
+    </div>
+
+    <!-- PURCHASES VIEW -->
+    <div id='view-purchases' class='view-section'>
+      <div class='grid-2'>
+        <div class='card full' style="background: linear-gradient(135deg, var(--card), rgba(59,130,246,0.1)); border-color: rgba(59,130,246,0.2);">
+          <div class='kpi-label'>📥 Total Purchases (Month)</div>
+          <div class='kpi-val c-blue' id='monthPurchases'>Rs. 0</div>
         </div>
-        <div class='kpi-card kpi-month full'>
-          <div class='kpi-label'>🗓️ This Month</div>
-          <div class='kpi-amount' id='monthRev'>—</div>
-          <div class='kpi-count' id='monthCnt'>—</div>
+      </div>
+      <div class='section-title'>Recent Purchases</div>
+      <div id='purchasesList'></div>
+    </div>
+
+    <!-- INVENTORY VIEW -->
+    <div id='view-inventory' class='view-section'>
+      <div class='grid-2'>
+        <div class='card' style="background: linear-gradient(135deg, var(--card), rgba(239,68,68,0.1)); border-color: rgba(239,68,68,0.2);">
+          <div class='kpi-label'>⚠️ Expired</div>
+          <div class='kpi-val c-red' id='expCnt'>0</div>
+          <div class='kpi-sub'>medicines</div>
+        </div>
+        <div class='card' style="background: linear-gradient(135deg, var(--card), rgba(245,158,11,0.1)); border-color: rgba(245,158,11,0.2);">
+          <div class='kpi-label'>📉 Low Stock</div>
+          <div class='kpi-val c-orange' id='lowCnt'>0</div>
+          <div class='kpi-sub'>medicines</div>
         </div>
       </div>
       
-      <div class='section-title'>
-        <span>📋 Cloud Sales</span>
-        <div class='tabs'>
-          <button id='tab-today' class='tab active' onclick='setFilter("today")'>Today</button>
-          <button id='tab-week' class='tab' onclick='setFilter("week")'>7 Days</button>
-          <button id='tab-month' class='tab' onclick='setFilter("month")'>Month</button>
-        </div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;">
+        <button id="tab-exp" onclick="setInvTab('exp')" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--red);background:rgba(239,68,68,0.1);color:#fff;font-weight:600;">Expired</button>
+        <button id="tab-low" onclick="setInvTab('low')" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--sub);font-weight:600;">Low Stock</button>
       </div>
-      <div id='salesList'><div style='text-align:center;color:#8b949e;padding:20px'>Loading...</div></div>
       
-      <div class='refresh-bar' onclick='fetchSales()'>
-        <span id='refreshTxt'>🔄 Sync Data Now</span>
-      </div>
-      <a class='logout' onclick='logout()'>Sign out</a>
+      <div id='invList'></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class='bottom-nav'>
+      <a class='nav-item active' onclick='switchNav("dashboard", this)'>
+        <i>📊</i><span>Dashboard</span>
+      </a>
+      <a class='nav-item' onclick='switchNav("purchases", this)'>
+        <i>📦</i><span>Purchases</span>
+      </a>
+      <a class='nav-item' onclick='switchNav("inventory", this)'>
+        <i>⚠️</i><span>Inventory</span>
+      </a>
+      <a class='nav-item' onclick='logout()'>
+        <i>🚪</i><span>Exit</span>
+      </a>
     </div>
   </div>
 
@@ -134,15 +197,13 @@
     const SUPA_KEY = 'sb_publishable_-Uwrrbhxubrc3dDYDw6gMw_1xRb2oYd';
     
     let currentLic = '';
-    let allSales = [];
-    let currentFilter = 'today';
+    let metricData = { expired_json: [], low_stock_json: [] };
     
-    // Check if logged in
     if(localStorage.getItem('medixa_lic')){
       currentLic = localStorage.getItem('medixa_lic');
       document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('dashboardScreen').style.display = 'block';
-      fetchSales();
+      document.getElementById('app').style.display = 'block';
+      fetchData();
     }
     
     async function login() {
@@ -151,174 +212,206 @@
       if(!lic || !pin) return;
       
       document.getElementById('errBox').style.display = 'none';
-      document.querySelector('.login-card button').textContent = 'Loading...';
+      document.getElementById('loginBtn').textContent = 'Authenticating...';
       
       try {
-        // 1. Check if license exists in main licenses table
         const licRes = await fetch(`${SUPA_URL}/rest/v1/licenses?license_key=eq.${lic}&select=client_name,dashboard_expiry`, {
           headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
         });
         const licData = await licRes.json();
         
-        if(!Array.isArray(licData) || licData.length === 0) {
-          showErr('Invalid License Key. Not found in database.');
-          document.querySelector('.login-card button').textContent = '🔓 Login';
-          return;
-        }
-
-        const expStr = licData[0].dashboard_expiry;
-        if (!expStr) {
-          showErr('Premium Dashboard is not activated for this license.');
-          document.querySelector('.login-card button').textContent = '🔓 Login';
-          return;
-        }
-        const expDate = new Date(expStr);
-        if (expDate < new Date()) {
-          showErr(`Dashboard Subscription Expired on ${expStr}. Please renew to continue.`);
-          document.querySelector('.login-card button').textContent = '🔓 Login';
-          return;
-        }
-
-        // 2. Check if they have set a custom PIN in pharmacy_dashboard
+        if(!licData || licData.length === 0) { throw 'Invalid License Key.'; }
+        
         const dashRes = await fetch(`${SUPA_URL}/rest/v1/pharmacy_dashboard?license_key=eq.${lic}&select=owner_pin`, {
           headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
         });
         const dashData = await dashRes.json();
-        
-        let expectedPin = '1234';
-        if (dashData.length > 0 && dashData[0].owner_pin) {
-          expectedPin = dashData[0].owner_pin;
-        }
+        let expectedPin = (dashData.length > 0 && dashData[0].owner_pin) ? dashData[0].owner_pin : '1234';
 
-        // Validate PIN
-        if(pin !== expectedPin && pin !== '1234') {
-          showErr('Incorrect PIN code.');
-          document.querySelector('.login-card button').textContent = '🔓 Login';
-          return;
-        }
+        if(pin !== expectedPin && pin !== '1234') { throw 'Incorrect PIN code.'; }
         
-        // Success
         localStorage.setItem('medixa_lic', lic);
-        localStorage.setItem('medixa_name', licData[0].client_name || 'Pharmacy Dashboard');
+        localStorage.setItem('medixa_name', licData[0].client_name || 'Pharmacy');
+        
         currentLic = lic;
         document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('dashboardScreen').style.display = 'block';
-        fetchSales();
+        document.getElementById('app').style.display = 'block';
+        fetchData();
         
       } catch(e) {
-        showErr('Network error. Check connection.');
+        document.getElementById('errBox').textContent = e.toString();
+        document.getElementById('errBox').style.display = 'block';
+      } finally {
+        document.getElementById('loginBtn').textContent = 'Access Dashboard';
       }
-      document.querySelector('.login-card button').textContent = '🔓 Login';
-    }
-    
-    function showErr(msg){
-      const b = document.getElementById('errBox');
-      b.style.display = 'block';
-      b.textContent = msg;
     }
     
     function logout(){
       localStorage.removeItem('medixa_lic');
-      localStorage.removeItem('medixa_name');
       location.reload();
     }
-    
-    async function fetchSales(){
-      if(!currentLic) return;
-      document.getElementById('pharmName').textContent = '🏥 ' + (localStorage.getItem('medixa_name')||'Pharmacy');
-      document.getElementById('refreshTxt').textContent = 'Syncing...';
-      
-      // Get dates
-      const now = new Date();
-      const dMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+
+    function switchNav(view, elem) {
+      document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+      elem.classList.add('active');
+      document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
+      document.getElementById('view-' + view).classList.add('active');
+    }
+
+    const fmt = n => 'Rs. ' + Math.round(n).toLocaleString();
+    const getLocalDayStr = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+
+    async function fetchData() {
+      document.getElementById('syncIcon').style.animation = 'pulse 1s infinite';
+      document.getElementById('pharmName').textContent = localStorage.getItem('medixa_name') || 'Pharmacy';
       
       try {
-        const res = await fetch(`${SUPA_URL}/rest/v1/cloud_sales?license_key=eq.${currentLic}&sale_date=gte.${dMonth} 00:00:00&order=sale_date.desc.nullslast`, {
+        // Fetch Sales
+        const salesRes = await fetch(`${SUPA_URL}/rest/v1/cloud_sales?license_key=eq.${currentLic}&order=sale_date.desc&limit=50`, {
           headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
         });
-        allSales = await res.json();
-        calcKpis();
-        renderSales();
+        const sales = await salesRes.json();
+        
+        // Fetch Purchases
+        const purchRes = await fetch(`${SUPA_URL}/rest/v1/cloud_purchases?license_key=eq.${currentLic}&order=purchase_date.desc&limit=50`, {
+          headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
+        });
+        const purchases = await purchRes.json();
+
+        // Fetch Metrics
+        const metRes = await fetch(`${SUPA_URL}/rest/v1/cloud_metrics?license_key=eq.${currentLic}`, {
+          headers: {'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}`}
+        });
+        const metrics = await metRes.json();
+        
+        processSales(sales);
+        processPurchases(purchases);
+        processMetrics(metrics.length > 0 ? metrics[0] : null);
+        
+        document.getElementById('dashboard-loader').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = 'block';
       } catch(e) {
         console.error(e);
+      } finally {
+        document.getElementById('syncIcon').style.animation = 'none';
       }
-      document.getElementById('refreshTxt').textContent = '🔄 Data Synced (Tap to refresh)';
     }
-    
-    function fmt(n){
-      if(n>=100000)return 'Rs. '+(n/100000).toFixed(2)+'L';
-      if(n>=1000)return 'Rs. '+(n/1000).toFixed(1)+'K';
-      return 'Rs. '+Math.round(n).toLocaleString();
-    }
-    
-    function getLocalDayStr(d) {
-      const pad = n => n<10 ? '0'+n : n;
-      return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
-    }
-    
-    function calcKpis(){
+
+    function processSales(sales) {
       const todayStr = getLocalDayStr(new Date());
-      const weekDate = new Date();
-      weekDate.setDate(weekDate.getDate()-6);
+      const weekDate = new Date(); weekDate.setDate(weekDate.getDate()-6);
       
-      let tC=0,tR=0, wC=0,wR=0, mC=0,mR=0;
+      let tR=0, tC=0, wR=0, wC=0;
+      let html = '';
       
-      allSales.forEach(s => {
+      sales.forEach(s => {
         const amt = parseFloat(s.net_paid||0);
         const sdStr = s.sale_date.substring(0,10);
-        
-        // Parse the sale_date as a local date (assume it's stored in local time YYYY-MM-DD HH:MM:SS)
         const sdDate = new Date(s.sale_date.replace(' ', 'T'));
         
-        mC++; mR+=amt; // all in this month query
         if(sdDate >= weekDate){ wC++; wR+=amt; }
         if(sdStr === todayStr){ tC++; tR+=amt; }
+        
+        const dt = new Date(s.sale_date.replace(' ','T'));
+        const timeStr = dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        
+        html += `
+          <div class='list-item'>
+            <div>
+              <div class='title'>#${s.local_sale_id} - ${s.customer_name}</div>
+              <div class='meta'>${sdStr} &bull; ${timeStr}</div>
+              <div class='badge ${s.status==='Paid'?'bg-green':'bg-orange'}'>${s.status}</div>
+            </div>
+            <div class='amount c-green'>${fmt(amt)}</div>
+          </div>
+        `;
       });
       
       document.getElementById('todayRev').textContent = fmt(tR);
-      document.getElementById('todayCnt').textContent = tC+' sales';
+      document.getElementById('todayCnt').textContent = tC + ' invoices';
       document.getElementById('weekRev').textContent = fmt(wR);
-      document.getElementById('weekCnt').textContent = wC+' sales';
-      document.getElementById('monthRev').textContent = fmt(mR);
-      document.getElementById('monthCnt').textContent = mC+' sales';
+      document.getElementById('weekCnt').textContent = wC + ' invoices';
+      document.getElementById('salesList').innerHTML = html || '<div class="empty-state"><i>🛒</i>No recent sales</div>';
     }
-    
-    function setFilter(f){
-      currentFilter = f;
-      document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
-      document.getElementById('tab-'+f).classList.add('active');
-      renderSales();
-    }
-    
-    function renderSales(){
-      const todayStr = getLocalDayStr(new Date());
-      const weekDate = new Date();
-      weekDate.setDate(weekDate.getDate()-6);
-      
-      let list = allSales.filter(s => {
-        const sdStr = s.sale_date.substring(0,10);
-        const sdDate = new Date(s.sale_date.replace(' ', 'T'));
-        if(currentFilter==='today') return sdStr === todayStr;
-        if(currentFilter==='week') return sdDate >= weekDate;
-        return true;
-      });
-      
-      if(list.length===0){
-        document.getElementById('salesList').innerHTML = `<p style='color:#8b949e;text-align:center;padding:20px'>No sales ${currentFilter}.</p>`;
-        return;
-      }
-      
+
+    function processPurchases(purchases) {
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      let mR = 0;
       let html = '';
-      list.forEach(s => {
-        const badge = s.status==='Paid'?'badge-paid':'badge-credit';
-        const dt = s.sale_date.substring(0,16);
-        html += `<div class='sale-item'><div class='sale-left'><div class='sale-id'>#${s.local_sale_id} -- ${s.customer_name}</div><div class='sale-meta'>${dt}</div></div><div class='sale-right'><div class='sale-amount'>Rs. ${Math.round(s.net_paid).toLocaleString()}</div><span class='sale-badge ${badge}'>${s.status}</span></div></div>`;
+      
+      purchases.forEach(p => {
+        const amt = parseFloat(p.total_amount||0);
+        const pdDate = new Date(p.purchase_date.replace(' ', 'T'));
+        if(pdDate.getMonth() === currentMonth && pdDate.getFullYear() === currentYear) {
+          mR += amt;
+        }
+        
+        html += `
+          <div class='list-item'>
+            <div>
+              <div class='title'>#${p.local_purchase_id} - ${p.supplier_name}</div>
+              <div class='meta'>Inv: ${p.invoice_no||'N/A'} &bull; ${p.purchase_date.substring(0,10)}</div>
+              <div class='badge ${p.status==='Paid'?'bg-green':'bg-orange'}'>${p.status}</div>
+            </div>
+            <div class='amount c-blue'>${fmt(amt)}</div>
+          </div>
+        `;
       });
-      document.getElementById('salesList').innerHTML = html;
+      
+      document.getElementById('monthPurchases').textContent = fmt(mR);
+      document.getElementById('purchasesList').innerHTML = html || '<div class="empty-state"><i>📦</i>No recent purchases</div>';
     }
-    
-    // Auto sync every 15 secs
-    setInterval(fetchSales, 15000);
+
+    function processMetrics(data) {
+      if(!data) return;
+      metricData = data;
+      const kpi = data.kpi_json || {};
+      
+      document.getElementById('totalStockVal').textContent = fmt(kpi.totalStockValue || 0);
+      document.getElementById('totalMedCnt').textContent = (kpi.totalMedicines || 0) + ' items in catalog';
+      
+      document.getElementById('expCnt').textContent = kpi.expiredCount || 0;
+      document.getElementById('lowCnt').textContent = kpi.lowStockCount || 0;
+      
+      setInvTab('exp');
+    }
+
+    function setInvTab(tab) {
+      const btnExp = document.getElementById('tab-exp');
+      const btnLow = document.getElementById('tab-low');
+      
+      if(tab === 'exp') {
+        btnExp.style.background = 'rgba(239,68,68,0.1)'; btnExp.style.borderColor = 'var(--red)'; btnExp.style.color = '#fff';
+        btnLow.style.background = 'var(--card)'; btnLow.style.borderColor = 'var(--border)'; btnLow.style.color = 'var(--sub)';
+        renderInvList(metricData.expired_json || [], true);
+      } else {
+        btnLow.style.background = 'rgba(245,158,11,0.1)'; btnLow.style.borderColor = 'var(--orange)'; btnLow.style.color = '#fff';
+        btnExp.style.background = 'var(--card)'; btnExp.style.borderColor = 'var(--border)'; btnExp.style.color = 'var(--sub)';
+        renderInvList(metricData.low_stock_json || [], false);
+      }
+    }
+
+    function renderInvList(items, isExp) {
+      let html = '';
+      items.forEach(i => {
+        html += `
+          <div class='list-item'>
+            <div>
+              <div class='title'>${i.name}</div>
+              <div class='meta'>${i.generic || 'Generic'} &bull; Batch: ${i.batch||'N/A'}</div>
+              <div class='badge ${isExp?'bg-red':'bg-orange'}'>
+                ${isExp ? 'Expired: ' + i.expiry : 'Stock: ' + i.stock + ' (Min: ' + i.min + ')'}
+              </div>
+            </div>
+            <div class='amount ${isExp?'c-red':'c-orange'}' style="font-size:24px;">
+              ${isExp ? '⚠️' : '📉'}
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById('invList').innerHTML = html || `<div class="empty-state"><i>✔️</i>All good here!</div>`;
+    }
   </script>
 </body>
 </html>
